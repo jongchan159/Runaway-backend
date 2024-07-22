@@ -50,8 +50,9 @@ def create_refresh_token(data: dict):
 #             detail="Invalid token",
 #             headers={"WWW-Authenticate": "Bearer"},
 #         )
-async def decode_token(token: str):
+async def decode_token(authorization: str = Header(...)):
     try:
+        token = authorization.split(" ")[1]
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         return payload
     except jwt.ExpiredSignatureError:

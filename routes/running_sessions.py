@@ -14,6 +14,7 @@ class RunningSessionCreate(BaseModel):
     average_pace: float
     current_pace: float
     route: list
+    strength: int = None
     
 class RunningSessionUpdate(BaseModel):
     current_distance: float
@@ -141,6 +142,7 @@ async def end_running_session(session_id: str, session_data: RunningSessionCreat
                 duration=session_data.duration,
                 average_pace=session_data.average_pace,
                 route=session_data.route,
+                strength=session_data.strength,
                 course_type=session.get("course_type"),
                 course_id=session.get("course_id")
             )

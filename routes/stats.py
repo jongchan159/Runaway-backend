@@ -78,7 +78,7 @@ async def get_yearly_stats(user_id: str, db=Depends(get_database)):
     return stats
 
 
-@router.get("/all-time/{user_id}")
+@router.get("/all_time/{user_id}")
 async def get_all_time_stats(user_id: str, db=Depends(get_database)):
     pipeline = [
         {"$match": {"user_id": ObjectId(user_id), "status": "completed"}},

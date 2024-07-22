@@ -101,7 +101,7 @@ async def register_user(user: UserCreate, db=Depends(get_database)):
 
 
 @router.get("/me", response_model=User)
-async def read_users_me(token: str = Depends(decode_token), db=Depends(get_database)):
+async def read_users_me(token: dict = Depends(decode_token), db=Depends(get_database)):
     if token is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
