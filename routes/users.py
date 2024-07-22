@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from database import get_database
@@ -31,9 +31,14 @@ class RefreshTokenRequest(BaseModel):
 
 # 로그인 : 비밀번호를 해싱
 @router.post("/login", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db=Depends(get_database)):
-    user = await db.users.find_one({"username": form_data.username})
-    if not user or not verify_password(form_data.password, user["password"]):
+async def login_for_access_token(request: Request, db=Depends(get_database)):
+    # JSON 데이터를 수신합니다.
+    body = await request.json()
+    user_login = UserLogin(**body)
+    
+    # 기존 로직을 사용합니다.
+    user = await db.users.find_one({"username": user_login.username})
+    if not user or not verify_password(user_login.password, user["password"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -50,7 +55,6 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     await db.users.update_one({"_id": user["_id"]}, {"$set": {"refresh_token": refresh_token}})
     
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
-
 
 # RefreshToken을 사용하여 사용자에게 새로운 AccessToken을 반환
 @router.post("/refresh", response_model=Token)
