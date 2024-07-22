@@ -55,7 +55,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 # RefreshToken을 사용하여 사용자에게 새로운 AccessToken을 반환
 @router.post("/refresh", response_model=Token)
 async def refresh_access_token(request: RefreshTokenRequest, db=Depends(get_database)):
-    payload = decode_token(request.refresh_token)
+    payload = await decode_token(request.refresh_token)
     if payload is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -100,7 +100,7 @@ async def register_user(user: UserCreate, db=Depends(get_database)):
     return {"id": str(result.inserted_id), "username": user.username}
 
 
-@router.get("/me")
+@router.get("/me", response_model=User)
 async def read_users_me(token: str = Depends(decode_token), db=Depends(get_database)):
     if token is None:
         raise HTTPException(
@@ -122,4 +122,4 @@ async def read_users_me(token: str = Depends(decode_token), db=Depends(get_datab
             detail="Invalid token",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    return {"username": username}
+    return user

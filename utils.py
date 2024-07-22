@@ -50,18 +50,22 @@ def create_refresh_token(data: dict):
 #             detail="Invalid token",
 #             headers={"WWW-Authenticate": "Bearer"},
 #         )
-async def decode_token(request: Request):
-    authorization: str = request.headers.get("Authorization")
-    if authorization is None or not authorization.startswith("Bearer "):
-        return None
-    token = authorization.split(" ")[1]
+async def decode_token(token: str):
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         return payload
     except jwt.ExpiredSignatureError:
-        return None
-    except jwt.InvalidTokenError:
-        return None
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except jwt.PyJWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
         
         
 
