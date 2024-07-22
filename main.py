@@ -15,9 +15,8 @@ async def shutdown_db_client():
     await close_mongo_connection()
 
 # 라우터 등록
-app.include_router(auth.router, prefix="/auth", tags=["auth"]) #토큰을 이용한 보안
 app.include_router(users.router, prefix="/users", tags=["users"])
-app.include_router(running_sessions.router, prefix="/running", tags=["running"])
+app.include_router(running_sessions.router, prefix="/running_sessions", tags=["running"])
 app.include_router(courses.router, prefix="/courses", tags=["courses"])
 app.include_router(stats.router, prefix="/stats", tags=["stats"])
 
