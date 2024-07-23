@@ -2,6 +2,7 @@ from bson import ObjectId
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import List, Optional, Dict, Any
+from bson.binary import Binary
 
 class PyObjectId(ObjectId):
     @classmethod
@@ -60,7 +61,8 @@ class Run(BaseModel):
 class Course(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     created_by: Optional[PyObjectId] = None
-    route: Dict[str, Any]
+    route: Binary
+    distance: float
     recommendation_count: int = 0
     created_at: datetime
 
