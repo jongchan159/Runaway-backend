@@ -4,9 +4,10 @@ from pydantic import BaseModel
 from database import get_database
 from bson import ObjectId
 from utils import create_access_token, create_refresh_token, decode_token, authenticate_user, get_password_hash, verify_password
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from settings import settings
 from models import User
+from typing import Optional
 
 router = APIRouter()
 
@@ -14,6 +15,7 @@ class Token(BaseModel):
     access_token: str
     refresh_token: str
     token_type: str
+    user_id: Optional[str] = None
 
 class UserLogin(BaseModel):
     username: str
@@ -54,7 +56,7 @@ async def login_for_access_token(request: Request, db=Depends(get_database)):
     # 리프레시 토큰을 DB에 저장
     await db.users.update_one({"_id": user["_id"]}, {"$set": {"refresh_token": refresh_token}})
     
-    return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+    return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer", "user_id": str(user["_id"])}
 
 # RefreshToken을 사용하여 사용자에게 새로운 AccessToken을 반환
 @router.post("/refresh", response_model=Token)
@@ -100,6 +102,22 @@ async def register_user(user: UserCreate, db=Depends(get_database)):
     user_data["password"] = hashed_password
     user_data["created_at"] = datetime.utcnow()
     result = await db.users.insert_one(user_data)
+    
+    # 통계 데이터 초기화
+    statistics_data = {
+        "user_id": result.inserted_id,
+        "weekly": [],
+        "monthly": [],
+        "yearly": [],
+        "total_distance": {
+            "year_start": datetime.now(timezone.utc),
+            "distance": 0,
+            "duration": 0,
+            "count": 0,
+            "average_pace": 0
+        }
+    }
+    await db.statistics.insert_one(statistics_data)
     
     return {"id": str(result.inserted_id), "username": user.username}
 

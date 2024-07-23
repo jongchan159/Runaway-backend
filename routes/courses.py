@@ -6,11 +6,13 @@ from datetime import datetime, timezone
 from fastapi.encoders import jsonable_encoder
 from typing import List, Dict, Any, Optional
 from bson.binary import Binary
+from models import Course
 
 router = APIRouter()
 
 class CourseCreate(BaseModel):
     route: bytes
+    route_coordinate: Dict[str, Any]
     distance: float
 
 class Location(BaseModel):
@@ -26,15 +28,16 @@ async def create_course(
 ):
     course_data = {
         "route": Binary(course.route),
+        "route_coordinate": course.route_coordinate,
         "distance": course.distance,
-        "created_by": ObjectId(user_id),
+        "created_by": ObjectId(course.created_by),
         "created_at": datetime.now(timezone.utc),
         "recommendation_count": 0
     }
     result = await db.courses.insert_one(course_data)
     return {"id": str(result.inserted_id)}
 
-# 코스 추천 -> 사용자의 현재 위치를 기반으로 모든 코스 시간순
+# 코스 추천 -> 최신순 정렬
 @router.post("/latest")
 async def recommend_course_latest(location: Location, db=Depends(get_database)):
     latitude = location.latitude
@@ -50,7 +53,7 @@ async def recommend_course_latest(location: Location, db=Depends(get_database)):
                 "spherical": True
             }
         },
-        {"$sort": {"created_at": -1}}
+        {"$sort": {"created_at": -1}} # 최신순 필터
     ]
 
     courses = await db.courses.aggregate(pipeline).to_list(length=None)
@@ -58,7 +61,7 @@ async def recommend_course_latest(location: Location, db=Depends(get_database)):
         raise HTTPException(status_code=404, detail="No courses found nearby")
     return jsonable_encoder(courses, custom_encoder={ObjectId: str})
 
-# 코스 추천 -> 이용자 수 높은 순으로 정렬
+# 코스 추천 -> 인기순 정렬
 @router.post("/recommend", status_code=status.HTTP_200_OK)
 async def recommend_course_sorted(location: Location, db=Depends(get_database)):
     latitude = location.latitude
@@ -73,7 +76,7 @@ async def recommend_course_sorted(location: Location, db=Depends(get_database)):
                 "spherical": True
             }
         },
-        {"$sort": {"recommendation_count": -1}}
+        {"$sort": {"recommendation_count": -1}} # 인기순 필터
     ]
 
     courses = await db.courses.aggregate(pipeline).to_list(length=None)
@@ -81,6 +84,14 @@ async def recommend_course_sorted(location: Location, db=Depends(get_database)):
         raise HTTPException(status_code=404, detail="No courses found nearby")
     return jsonable_encoder(courses, custom_encoder={ObjectId: str})
 
+
+# 코스 id를 받고 코스 전체를 반환하는 엔드포인트
+@router.get("/course/{course_id}", response_model=Course)
+async def get_course(course_id: str, db=Depends(get_database)):
+    course = await db.courses.find_one({"_id": ObjectId(course_id)})
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    return jsonable_encoder(course, custom_encoder={ObjectId: str})
 
 # 유저의 모든 코스 리스트
 @router.get("/all_courses/{user_id}")

@@ -62,6 +62,7 @@ class Course(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     created_by: Optional[PyObjectId] = None
     route: Binary
+    route_coordinate: Dict[str, Any]
     distance: float
     recommendation_count: int = 0
     created_at: datetime
@@ -74,19 +75,48 @@ class Course(BaseModel):
             datetime: lambda v: v.isoformat()
         }
 
+class WeeklyStats(BaseModel):
+    week_start: datetime
+    distance: float
+    duration: float
+    count: int
+    average_pace: float
+
+class MonthlyStats(BaseModel):
+    month_start: datetime
+    distance: float
+    duration: float
+    count: int
+    average_pace: float
+
+class YearlyStats(BaseModel):
+    year_start: datetime
+    distance: float
+    duration: float
+    count: int
+    average_pace: float
+
+class TotalStats(BaseModel):
+    year_start: datetime
+    distance: float
+    duration: float
+    count: int
+    average_pace: float
+
 class Statistics(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     user_id: PyObjectId
-    weekly: Optional[List[Dict[str, Any]]] = None
-    monthly: Optional[List[Dict[str, Any]]] = None
-    yearly: Optional[List[Dict[str, Any]]] = None
-    total_distance: Optional[Dict[str, Any]] = None
+    weekly: Optional[List[WeeklyStats]] = None
+    monthly: Optional[List[MonthlyStats]] = None
+    yearly: Optional[List[YearlyStats]] = None
+    totally: Optional[TotalStats] = None
 
     class Config:
         populate_by_name = True
         arbitrary_types_allowed = True
         json_encoders = {
-            ObjectId: str
+            ObjectId: str,
+            datetime: lambda v: v.isoformat()
         }
 
 class Session(BaseModel):
@@ -96,7 +126,7 @@ class Session(BaseModel):
     distance: float
     average_pace: float
     current_pace: float
-    strength: int
+    strength: int = 0
     route: Dict[str, Any]
     status: str
 

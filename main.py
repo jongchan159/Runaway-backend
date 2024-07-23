@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routes import users, running_sessions, courses, stats, auth
+from routes import users, running_sessions, courses, stats
 from database import connect_to_mongo, close_mongo_connection
 from settings import settings
 

@@ -73,11 +73,16 @@ class RunResponse(BaseModel):
 
 class CourseCreate(BaseModel):
     route: Dict[str, Any]
+    route_coordinate: Dict[str, Any]
+    distance: float
+    created_at: datetime
 
 class CourseResponse(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     created_by: Optional[PyObjectId] = None
     route: Dict[str, Any]
+    route_coordinate: Dict[str, Any]
+    distance: float
     recommendation_count: int
     created_at: datetime
 
@@ -95,7 +100,7 @@ class StatisticsResponse(BaseModel):
     weekly: Optional[List[Dict[str, Any]]] = None
     monthly: Optional[List[Dict[str, Any]]] = None
     yearly: Optional[List[Dict[str, Any]]] = None
-    total_distance: Optional[Dict[str, Any]] = None
+    totally: Optional[Dict[str, Any]] = None
 
     class Config:
         allow_population_by_field_name = True
