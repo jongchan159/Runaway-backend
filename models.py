@@ -43,12 +43,12 @@ class Run(BaseModel):
     user_id: PyObjectId
     date: datetime
     distance: float
-    duration: float
+    duration: int
     average_pace: float
-    strength: Optional[int] = None
+    strength: Optional[int] = 5
     route: List[Dict[str, Any]]
-    course_type: Optional[str] = None
-    course_id: Optional[PyObjectId] = None
+    course_type: Optional[str] = ""
+    course_id: Optional[PyObjectId] = ""
 
     class Config:
         populate_by_name = True
@@ -64,6 +64,7 @@ class Course(BaseModel):
     route: Binary
     route_coordinate: Dict[str, Any]
     distance: float
+    course_type: Optional[str] = ""
     recommendation_count: int = 0
     created_at: datetime
 
@@ -78,57 +79,38 @@ class Course(BaseModel):
 class WeeklyStats(BaseModel):
     week_start: datetime
     distance: float
-    duration: float
+    duration: int
     count: int
     average_pace: float
 
 class MonthlyStats(BaseModel):
     month_start: datetime
     distance: float
-    duration: float
+    duration: int
     count: int
     average_pace: float
 
 class YearlyStats(BaseModel):
     year_start: datetime
     distance: float
-    duration: float
+    duration: int
     count: int
     average_pace: float
 
 class TotalStats(BaseModel):
     year_start: datetime
     distance: float
-    duration: float
+    duration: int
     count: int
     average_pace: float
 
 class Statistics(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     user_id: PyObjectId
-    weekly: Optional[List[WeeklyStats]] = None
-    monthly: Optional[List[MonthlyStats]] = None
-    yearly: Optional[List[YearlyStats]] = None
+    weekly: Optional[WeeklyStats] = None
+    monthly: Optional[MonthlyStats] = None
+    yearly: Optional[YearlyStats] = None
     totally: Optional[TotalStats] = None
-
-    class Config:
-        populate_by_name = True
-        arbitrary_types_allowed = True
-        json_encoders = {
-            ObjectId: str,
-            datetime: lambda v: v.isoformat()
-        }
-
-class Session(BaseModel):
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
-    user_id: PyObjectId
-    running_time: datetime
-    distance: float
-    average_pace: float
-    current_pace: float
-    strength: int = 0
-    route: Dict[str, Any]
-    status: str
 
     class Config:
         populate_by_name = True

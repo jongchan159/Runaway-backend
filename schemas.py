@@ -44,19 +44,19 @@ class UserResponse(BaseModel):
 class RunCreate(BaseModel):
     date: datetime
     distance: float
-    duration: float
+    duration: int
     average_pace: float
-    strength: Optional[int] = None
+    strength: Optional[int] = 0
     route: Dict[str, Any]
-    course_type: Optional[str] = None
-    course_id: Optional[PyObjectId] = None
+    course_type: Optional[str] = ""
+    course_id: Optional[PyObjectId] = ""
 
 class RunResponse(BaseModel):
     id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
     user_id: PyObjectId
     date: datetime
     distance: float
-    duration: float
+    duration: int
     average_pace: float
     strength: Optional[int] = None
     route: Dict[str, Any]

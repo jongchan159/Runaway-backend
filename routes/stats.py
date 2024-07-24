@@ -6,7 +6,6 @@ from models import Statistics, WeeklyStats, MonthlyStats, YearlyStats, TotalStat
 
 router = APIRouter()
 
-
 @router.get("/weekly/{user_id}", response_model=Statistics)
 async def get_weekly_stats(user_id: str, db=Depends(get_database)):
     today = datetime.now(timezone.utc)
@@ -25,7 +24,7 @@ async def get_weekly_stats(user_id: str, db=Depends(get_database)):
     ]
     result = await db.running_sessions.aggregate(pipeline).to_list(length=None)
     if not result:
-        return {"weekly": []}
+        return Statistics(weekly=[])
     
     weekly_stats = [WeeklyStats(
         week_start=item['_id'],
@@ -35,7 +34,7 @@ async def get_weekly_stats(user_id: str, db=Depends(get_database)):
         average_pace=item['average_pace']
     ) for item in result]
     
-    return {"weekly": weekly_stats}
+    return Statistics(weekly=weekly_stats)
 
 @router.get("/monthly/{user_id}", response_model=Statistics)
 async def get_monthly_stats(user_id: str, db=Depends(get_database)):
@@ -54,7 +53,7 @@ async def get_monthly_stats(user_id: str, db=Depends(get_database)):
     ]
     result = await db.running_sessions.aggregate(pipeline).to_list(length=None)
     if not result:
-        return {"monthly": []}
+        return Statistics(monthly=[])
     
     monthly_stats = [MonthlyStats(
         month_start=item['_id'],
@@ -64,7 +63,7 @@ async def get_monthly_stats(user_id: str, db=Depends(get_database)):
         average_pace=item['average_pace']
     ) for item in result]
     
-    return {"monthly": monthly_stats}
+    return Statistics(monthly=monthly_stats)
 
 @router.get("/yearly/{user_id}", response_model=Statistics)
 async def get_yearly_stats(user_id: str, db=Depends(get_database)):
@@ -83,7 +82,7 @@ async def get_yearly_stats(user_id: str, db=Depends(get_database)):
     ]
     result = await db.running_sessions.aggregate(pipeline).to_list(length=None)
     if not result:
-        return {"yearly": []}
+        return Statistics(yearly=[])
     
     yearly_stats = [YearlyStats(
         year_start=item['_id'],
@@ -93,7 +92,7 @@ async def get_yearly_stats(user_id: str, db=Depends(get_database)):
         average_pace=item['average_pace']
     ) for item in result]
     
-    return {"yearly": yearly_stats}
+    return Statistics(yearly=yearly_stats)
 
 @router.get("/all_time/{user_id}", response_model=Statistics)
 async def get_all_time_stats(user_id: str, db=Depends(get_database)):
@@ -109,16 +108,16 @@ async def get_all_time_stats(user_id: str, db=Depends(get_database)):
     ]
     result = await db.running_sessions.aggregate(pipeline).to_list(length=1)
     if not result:
-        return {"total_distance": TotalStats(
+        return Statistics(totally=TotalStats(
             year_start=datetime.now(timezone.utc),
             distance=0,
             duration=0,
             count=0,
             average_pace=0
-        )}
+        ))
     
     stats = result[0]
-    total_distance = TotalStats(
+    total_stats = TotalStats(
         year_start=datetime.now(timezone.utc),
         distance=stats['total_distance'],
         duration=stats['total_duration'],
@@ -126,5 +125,6 @@ async def get_all_time_stats(user_id: str, db=Depends(get_database)):
         average_pace=stats['average_pace']
     )
     
-    return {"total_distance": total_distance}
+    return Statistics(totally=total_stats)
+
 

@@ -93,6 +93,7 @@ async def get_course(course_id: str, db=Depends(get_database)):
         raise HTTPException(status_code=404, detail="Course not found")
     return jsonable_encoder(course, custom_encoder={ObjectId: str})
 
+
 # 유저의 모든 코스 리스트
 @router.get("/all_courses/{user_id}")
 async def all_courses(user_id: str, db=Depends(get_database)):

@@ -106,9 +106,27 @@ async def register_user(user: UserCreate, db=Depends(get_database)):
     # 통계 데이터 초기화
     statistics_data = {
         "user_id": result.inserted_id,
-        "weekly": [],
-        "monthly": [],
-        "yearly": [],
+        "weekly": {
+            "year_start": datetime.now(timezone.utc),
+            "distance": 0,
+            "duration": 0,
+            "count": 0,
+            "average_pace": 0
+        },
+        "monthly": {
+            "year_start": datetime.now(timezone.utc),
+            "distance": 0,
+            "duration": 0,
+            "count": 0,
+            "average_pace": 0
+        },
+        "yearly": {
+            "year_start": datetime.now(timezone.utc),
+            "distance": 0,
+            "duration": 0,
+            "count": 0,
+            "average_pace": 0
+        },
         "total_distance": {
             "year_start": datetime.now(timezone.utc),
             "distance": 0,
