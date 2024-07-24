@@ -10,6 +10,9 @@ async def connect_to_mongo():
         client = AsyncIOMotorClient(settings.MONGODB_URL, tls=True, tlsAllowInvalidCertificates=True)
         await client.server_info()  # 연결 확인
         print("Successfully connected to MongoDB")
+        # 인덱스 생성
+        db = client.get_database("RunawayCluster")
+        await db.courses.create_index([("route_coordinate", "2dsphere")])
 
 async def close_mongo_connection():
     global client

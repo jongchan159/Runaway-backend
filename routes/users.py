@@ -107,14 +107,14 @@ async def register_user(user: UserCreate, db=Depends(get_database)):
     statistics_data = {
         "user_id": result.inserted_id,
         "weekly": {
-            "year_start": datetime.now(timezone.utc),
+            "week_start": datetime.now(timezone.utc),
             "distance": 0,
             "duration": 0,
             "count": 0,
             "average_pace": 0
         },
         "monthly": {
-            "year_start": datetime.now(timezone.utc),
+            "month_start": datetime.now(timezone.utc),
             "distance": 0,
             "duration": 0,
             "count": 0,
@@ -127,7 +127,7 @@ async def register_user(user: UserCreate, db=Depends(get_database)):
             "count": 0,
             "average_pace": 0
         },
-        "total_distance": {
+        "totally": {
             "year_start": datetime.now(timezone.utc),
             "distance": 0,
             "duration": 0,

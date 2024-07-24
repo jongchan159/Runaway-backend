@@ -4,6 +4,8 @@ from datetime import datetime
 from typing import List, Optional, Dict, Any
 from bson.binary import Binary
 
+
+# 데이터베이스에 저장될 형식 정의
 class PyObjectId(ObjectId):
     @classmethod
     def __get_validators__(cls):
@@ -46,9 +48,8 @@ class Run(BaseModel):
     duration: int
     average_pace: float
     strength: Optional[int] = 5
-    route: List[Dict[str, Any]]
-    course_type: Optional[str] = ""
-    course_id: Optional[PyObjectId] = ""
+    route: Optional[List[Dict[str, Any]]]
+    course_id: Optional[PyObjectId] = None
 
     class Config:
         populate_by_name = True
@@ -64,7 +65,7 @@ class Course(BaseModel):
     route: Binary
     route_coordinate: Dict[str, Any]
     distance: float
-    course_type: Optional[str] = ""
+    course_type: Optional[int] = 0 #0이면 직접그리기, 1이면 추천
     recommendation_count: int = 0
     created_at: datetime
 
@@ -119,5 +120,4 @@ class Statistics(BaseModel):
             ObjectId: str,
             datetime: lambda v: v.isoformat()
         }
-
 

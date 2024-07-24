@@ -48,7 +48,6 @@ class RunCreate(BaseModel):
     average_pace: float
     strength: Optional[int] = 0
     route: Dict[str, Any]
-    course_type: Optional[str] = ""
     course_id: Optional[PyObjectId] = ""
 
 class RunResponse(BaseModel):
@@ -60,7 +59,6 @@ class RunResponse(BaseModel):
     average_pace: float
     strength: Optional[int] = None
     route: Dict[str, Any]
-    course_type: Optional[str] = None
     course_id: Optional[PyObjectId] = None
 
     class Config:
