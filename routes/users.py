@@ -104,24 +104,35 @@ async def register_user(user: UserCreate, db=Depends(get_database)):
     result = await db.users.insert_one(user_data)
     
     # 통계 데이터 초기화
+    now = datetime.now(timezone.utc)
+    
+    # 이번 주 월요일 날짜 계산
+    week_start = now - timedelta(days=now.weekday())
+    week_start = datetime(week_start.year, week_start.month, week_start.day, tzinfo=timezone.utc)
+    
+    # 이번 달 1일 날짜 계산
+    month_start = datetime(now.year, now.month, 1, tzinfo=timezone.utc)
+    
+    # 올해 1월 1일 날짜 계산
+    year_start = datetime(now.year, 1, 1, tzinfo=timezone.utc)
     statistics_data = {
         "user_id": result.inserted_id,
         "weekly": {
-            "week_start": datetime.now(timezone.utc),
+            "week_start": week_start,
             "distance": 0,
             "duration": 0,
             "count": 0,
             "average_pace": 0
         },
         "monthly": {
-            "month_start": datetime.now(timezone.utc),
+            "month_start": month_start,
             "distance": 0,
             "duration": 0,
             "count": 0,
             "average_pace": 0
         },
         "yearly": {
-            "year_start": datetime.now(timezone.utc),
+            "year_start": year_start,
             "distance": 0,
             "duration": 0,
             "count": 0,
