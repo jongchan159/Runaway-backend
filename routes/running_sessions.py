@@ -38,7 +38,7 @@ async def start_running_session(request: Request, db=Depends(get_database)):
     return {"session_id": str(result.inserted_id)}
 
 
-# 러닝세션이 완료되면 DB에 런닝 기록을 저장하고, 특정 사용자의 전체 통계를 업데이트
+# 런닝 종료 후 Run데이터 생성 및 통계 업데이트
 @router.post("/{session_id}/end")
 async def end_running_session(session_id: str, session_data: RunningSessionCreate, db=Depends(get_database)):
     session = await db.running_sessions.find_one({"_id": ObjectId(session_id)})
@@ -56,13 +56,11 @@ async def end_running_session(session_id: str, session_data: RunningSessionCreat
 
     await db.running_sessions.update_one({"_id": ObjectId(session_id)}, {"$set": update_data})
 
-    # 사용자 통계 업데이트
     user_id = session.get("user_id")
     if user_id:
         user = await db.users.find_one({"_id": ObjectId(user_id)})
         if user:
             try:
-                # Run 데이터 생성
                 run_data = Run(
                     user_id=user_id,
                     date=datetime.now(timezone.utc),
@@ -76,10 +74,60 @@ async def end_running_session(session_id: str, session_data: RunningSessionCreat
                 insert_result = await db.runs.insert_one(run_data.dict(by_alias=True))
                 if not insert_result.acknowledged:
                     raise HTTPException(status_code=500, detail="Failed to insert run data")
+
+                await update_user_statistics(user_id, session_data, db)
+                
             except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Error occurred while creating run data: {str(e)}")
 
     return {"message": "Session ended successfully"}
+
+async def update_user_statistics(user_id: str, session_data: RunningSessionCreate, db):
+    user_stats = await db.statistics.find_one({"user_id": ObjectId(user_id)})
+    if not user_stats:
+        raise HTTPException(status_code=404, detail="User statistics not found")
+
+    now = datetime.now(timezone.utc)
+
+    def make_offset_aware(dt):
+        if dt is None or dt.tzinfo is None:
+            return dt.replace(tzinfo=timezone.utc)
+        return dt
+
+    def update_stats(stats, period_key, period_length):
+        period_start = make_offset_aware(stats[period_key + "_start"])
+        period_end = period_start + period_length
+
+        if period_start <= now <= period_end:
+            stats["distance"] += session_data.distance
+            stats["duration"] += session_data.duration
+            stats["count"] += 1
+            stats["average_pace"] = (stats["average_pace"] * (stats["count"] - 1) + session_data.average_pace) / stats["count"] if stats["count"] > 0 else session_data.average_pace
+        else:
+            stats.update({
+                period_key + "_start": now,
+                "distance": session_data.distance,
+                "duration": session_data.duration,
+                "count": 1,
+                "average_pace": session_data.average_pace
+            })
+    
+    # 주간 통계 업데이트
+    update_stats(user_stats["weekly"], "week", timedelta(weeks=1))
+
+    # 월간 통계 업데이트
+    update_stats(user_stats["monthly"], "month", timedelta(days=30))  # 30일을 한 달로 간주
+
+    # 연간 통계 업데이트
+    update_stats(user_stats["yearly"], "year", timedelta(days=365))  # 365일을 1년으로 간주
+
+    # 전체 통계 업데이트
+    user_stats["totally"]["distance"] += session_data.distance
+    user_stats["totally"]["duration"] += session_data.duration
+    user_stats["totally"]["count"] += 1
+    user_stats["totally"]["average_pace"] = (user_stats["totally"]["average_pace"] * (user_stats["totally"]["count"] - 1) + session_data.average_pace) / user_stats["totally"]["count"] if user_stats["totally"]["count"] > 0 else session_data.average_pace
+
+    await db.statistics.update_one({"user_id": ObjectId(user_id)}, {"$set": user_stats})
 
 
 
