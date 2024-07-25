@@ -102,11 +102,12 @@ async def count_courses(user_id: str, course_type: int, db=Depends(get_database)
     count = await db.courses.count_documents({"created_by": ObjectId(user_id), "course_type": course_type})
     return count
 
-# # 유저의 모든 코스 리스트
-# @router.get("/all_courses/{user_id}")
-# async def all_courses(user_id: str, db=Depends(get_database)):
-#     cursor = db.courses.find({"created_by": ObjectId(user_id)}).sort("created_at", -1)
-#     courses = await cursor.to_list(length=None)
-#     if not courses:
-#         raise HTTPException(status_code=404, detail="No courses found for the user")
-#     return jsonable_encoder(courses, custom_encoder={ObjectId: str})
+
+# 유저의 모든 코스 리스트
+@router.get("/all_courses/{user_id}")
+async def all_courses(user_id: str, db=Depends(get_database)):
+    cursor = db.courses.find({"created_by": ObjectId(user_id)}).sort("created_at", -1)
+    courses = await cursor.to_list(length=None)
+    if not courses:
+        raise HTTPException(status_code=404, detail="No courses found for the user")
+    return jsonable_encoder(courses, custom_encoder={ObjectId: str})
